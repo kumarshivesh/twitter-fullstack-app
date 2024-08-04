@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Tweet
+{% endblock %}
+
+{% block content %}
+<a class="btn btn-primary mt-4 mb-4" href="{% url 'tweet_create' %}">Create a tweet</a>
+<div class="container row gap-5">
+  {% for tweet in tweets %}
+  <!-- STRAT: Card [Copied the Card code from Bootstrap]-->
+  <div class="card" style="width: 38rem;">
+    <div class="card-header d-flex align-items-center">
+      <img src="{{ tweet.user.profile.profileimg.url }}" alt="Profile" class="rounded-circle me-2" style="width: 55px; height: 55px; object-fit: cover;">
+      <h5 class="card-title ms-3">{{ tweet.user.username }}</h5>
+    </div>
+    <p class="card-text">{{ tweet.text }}</p>
+    <img src="{{ tweet.photo.url }}" class="card-img-top" alt="Tweet Photo">
+    <div class="card-body">
+      {% if tweet.user == user %}
+      <a href="{% url 'tweet_edit' tweet.id %}" class="btn btn-primary">Edit</a>
+      <a href="{% url 'tweet_delete' tweet.id %}" class="btn btn-danger">Delete</a>
+      {% endif %}
+    </div>
+  </div>
+  <!-- END: Card -->
+  {% endfor %}
+</div>
+{% endblock %}
