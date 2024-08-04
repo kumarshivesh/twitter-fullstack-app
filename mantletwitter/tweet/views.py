@@ -22,7 +22,7 @@ def signup(request):
     if form.is_valid():
       user = form.save()  # Create the user object and save in the database
       
-      profileimg = form.cleaned_data.get('profileimg')
+      profileimg = form.cleaned_data.get('profileimg') or 'profile_images/blank-profile-picture.png'
       
       # Create a Profile object for the new user
       Profile.objects.create(user=user, id_user=user.id, profileimg=profileimg)

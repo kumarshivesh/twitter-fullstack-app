@@ -28,7 +28,7 @@
           <button class="btn btn-outline-success" type="submit">Search</button>
         </form>
         {% if user.is_authenticated %}
-        <img src="{{ user.profile.profileimg.url }}" alt="Profile Image" class="rounded-circle" width="30" height="30">
+        <img src="{{ user.profile.profileimg.url }}" alt="Profile Image" class="rounded-circle mx-3" width="40" height="40">
         <p class="navbar-text text-primary fw-bolder mx-2 my-2">{{ user.username }}</p>
         <form method="post" action="{% url "logout" %}">
           {% csrf_token %}
