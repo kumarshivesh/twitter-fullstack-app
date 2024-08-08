@@ -20,23 +20,26 @@ def signup(request):
   if request.method == 'POST':
     form = UserRegistrationForm(request.POST, request.FILES)
     if form.is_valid():
-      user = form.save()  # Create the user object and save in the database
+      user = form.save(commit=False)
+      user.first_name = form.cleaned_data.get('first_name')
+      user.last_name = form.cleaned_data.get('last_name')
+      user.save()
       
       profileimg = form.cleaned_data.get('profileimg') or 'profile_images/blank-profile-picture.png'
       
       # Create a Profile object for the new user
       Profile.objects.create(user=user, id_user=user.id, profileimg=profileimg)
       
-      # Log the user in and redirect to 'settings' page (temporarily to 'signup' page) 
+      # Log the user in and redirect to 'tweet_list' page 
       user_login = auth.authenticate(username=user.username, password=form.cleaned_data.get('password1'))
       auth.login(request, user_login)
       
-      return redirect('tweet_list') # Redirect to the desired page after login
+      return redirect('tweet_list')
     else:
       messages.error(request, form.errors)
       return redirect('signup')
   else:
-      form = UserRegistrationForm()
+    form = UserRegistrationForm()
   return render(request, 'registration/signup.html', {'form': form})
 
 def custom_logout(request):
