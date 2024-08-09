@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Profile, Tweet
-from .forms import UserRegistrationForm, TweetForm
+from .models import Profile, Tweet, LikeTweet
+from .forms import UserRegistrationForm, TweetForm, ProfileEditForm
 from django.contrib.auth.models import User, auth
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -88,4 +88,39 @@ def search(request):
   else:
     results = Tweet.objects.none()
   return render(request, 'search_results.html', {'results': results, 'query': query})
+
+@login_required
+def edit_profile(request):
+  try:
+    profile = request.user.profile
+  except Profile.DoesNotExist:
+    # Create a new profile if it doesn't exist
+    profile = Profile.objects.create(user=request.user, id_user=request.user.id)
+
+  if request.method == 'POST':
+    form = ProfileEditForm(request.POST, request.FILES, instance=profile)
+    if form.is_valid():
+      form.save()
+      return redirect('tweet_list')
+  else:
+    form = ProfileEditForm(instance=profile)
+
+  return render(request, 'profile/edit_profile.html', {'form': form})
+
+@login_required
+def like_tweet(request):
+    tweet_id = request.GET.get('tweet_id')
+    tweet = Tweet.objects.get(id=tweet_id)
+    like_filter = LikeTweet.objects.filter(tweet=tweet, user=request.user).first()
+
+    if like_filter is None:
+        new_like = LikeTweet.objects.create(tweet=tweet, user=request.user)
+        tweet.no_of_likes += 1
+        tweet.save()
+    else:
+        like_filter.delete()
+        tweet.no_of_likes -= 1
+        tweet.save()
+
+    return redirect('tweet_list')
 

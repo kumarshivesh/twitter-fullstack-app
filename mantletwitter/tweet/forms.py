@@ -1,5 +1,5 @@
 from django import forms
-from .models import Tweet
+from .models import Tweet, Profile
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
@@ -18,3 +18,11 @@ class TweetForm(forms.ModelForm):
   class Meta:
     model = Tweet
     fields = ['text', 'photo']
+
+class ProfileEditForm(forms.ModelForm):
+  first_name = forms.CharField(max_length=30, required=False, help_text='Optional.')
+  last_name = forms.CharField(max_length=30, required=False, help_text='Optional.')
+
+  class Meta:
+    model = Profile
+    fields = ['profileimg', 'bio', 'location']

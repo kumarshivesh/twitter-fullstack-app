@@ -30,6 +30,7 @@
         </form>
         {% if user.is_authenticated %}
         <img src="{{ user.profile.profileimg.url }}" alt="Profile Image" class="rounded-circle mx-3" width="40" height="40">
+        <a href="{% url 'edit_profile' %}" class="btn btn-outline-secondary ms-2">Edit Profile</a>
         <p class="navbar-text text-primary fw-bolder mx-2 my-2">{{ user.username }}</p>
         <form method="post" action="{% url "logout" %}">
           {% csrf_token %}

@@ -26,5 +26,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('tweet/', include('tweet.urls')),
     path('accounts/logout/', views.custom_logout, name='logout'),
-    path('accounts/', include('django.contrib.auth.urls'))
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('edit-profile/', views.edit_profile, name='edit_profile')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
