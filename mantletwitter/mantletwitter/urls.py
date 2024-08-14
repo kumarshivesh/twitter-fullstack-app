@@ -25,7 +25,13 @@ from tweet import views  # Import the custom_logout view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('tweet/', include('tweet.urls')),
+    path('posts/', views.user_posts_list, name='user_posts_list'),
     path('accounts/logout/', views.custom_logout, name='logout'),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('edit-profile/', views.edit_profile, name='edit_profile')
+    path('edit-profile/', views.edit_profile, name='edit_profile'),
+    path('likes/', views.likes_list, name='likes_list'),
+    path('favorites/', views.favorites_list, name='favorites_list'),
+    path('profile/<str:username>/', views.profile, name='profile'),
+     path('profile/<str:username>/media/', views.profile_media, name='profile_media'),
+     path('profile/<str:username>/follow/', views.follow_toggle, name='follow_toggle'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

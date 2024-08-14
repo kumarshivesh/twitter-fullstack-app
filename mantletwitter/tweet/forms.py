@@ -25,4 +25,4 @@ class ProfileEditForm(forms.ModelForm):
 
   class Meta:
     model = Profile
-    fields = ['profileimg', 'bio', 'location']
+    fields = ['profileimg', 'coverimg', 'bio', 'location']

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Profile, Tweet, LikeTweet
+from .models import Profile, Tweet, LikeTweet, Favorite, Follow
 from .forms import UserRegistrationForm, TweetForm, ProfileEditForm
 from django.contrib.auth.models import User, auth
 from django.contrib.auth import logout
@@ -28,7 +28,7 @@ def signup(request):
       profileimg = form.cleaned_data.get('profileimg') or 'profile_images/blank-profile-picture.png'
       
       # Create a Profile object for the new user
-      Profile.objects.create(user=user, id_user=user.id, profileimg=profileimg)
+      Profile.objects.create(user=user, profileimg=profileimg)
       
       # Log the user in and redirect to 'tweet_list' page 
       user_login = auth.authenticate(username=user.username, password=form.cleaned_data.get('password1'))
@@ -81,6 +81,11 @@ def tweet_delete(request, tweet_id):
     return redirect('tweet_list')
   return render(request, 'tweet_confirm_delete.html', {'tweet': tweet})
 
+@login_required
+def user_posts_list(request):
+    user_tweets = Tweet.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'tweet/user_posts_list.html', {'user_tweets': user_tweets})
+
 def search(request):
   query = request.GET.get('q')
   if query:
@@ -89,38 +94,111 @@ def search(request):
     results = Tweet.objects.none()
   return render(request, 'search_results.html', {'results': results, 'query': query})
 
+
 @login_required
 def edit_profile(request):
   try:
     profile = request.user.profile
   except Profile.DoesNotExist:
-    # Create a new profile if it doesn't exist
-    profile = Profile.objects.create(user=request.user, id_user=request.user.id)
+    profile = Profile.objects.create(user=request.user)
 
   if request.method == 'POST':
     form = ProfileEditForm(request.POST, request.FILES, instance=profile)
     if form.is_valid():
-      form.save()
+      profile = form.save(commit=False)
+      profile.user.first_name = form.cleaned_data.get('first_name')
+      profile.user.last_name = form.cleaned_data.get('last_name')
+      profile.user.save()
+      profile.save()
       return redirect('tweet_list')
   else:
     form = ProfileEditForm(instance=profile)
+    form.fields['first_name'].initial = request.user.first_name
+    form.fields['last_name'].initial = request.user.last_name
 
   return render(request, 'profile/edit_profile.html', {'form': form})
 
 @login_required
 def like_tweet(request):
-    tweet_id = request.GET.get('tweet_id')
-    tweet = Tweet.objects.get(id=tweet_id)
-    like_filter = LikeTweet.objects.filter(tweet=tweet, user=request.user).first()
+  tweet_id = request.GET.get('tweet_id')
+  tweet = Tweet.objects.get(id=tweet_id)
+  like_filter = LikeTweet.objects.filter(tweet=tweet, user=request.user).first()
 
-    if like_filter is None:
-        new_like = LikeTweet.objects.create(tweet=tweet, user=request.user)
-        tweet.no_of_likes += 1
-        tweet.save()
-    else:
-        like_filter.delete()
-        tweet.no_of_likes -= 1
-        tweet.save()
+  if like_filter is None:
+    new_like = LikeTweet.objects.create(tweet=tweet, user=request.user)
+    tweet.no_of_likes += 1
+    tweet.save()
+  else:
+    like_filter.delete()
+    tweet.no_of_likes -= 1
+    tweet.save()
 
-    return redirect('tweet_list')
+  return redirect('tweet_list')
+
+@login_required
+def likes_list(request):
+    liked_tweets = Tweet.objects.filter(liketweet__user=request.user).order_by('-created_at')
+    return render(request, 'tweet/likes_list.html', {'liked_tweets': liked_tweets})
+
+@login_required
+def save_to_favorites(request, tweet_id):
+  tweet = Tweet.objects.get(id=tweet_id)
+  favorite, created = Favorite.objects.get_or_create(user=request.user, tweet=tweet)
+  
+  if not created:
+    favorite.delete()  # If it already exists, remove it (toggle functionality)
+
+  return redirect('tweet_list')
+
+@login_required
+def favorites_list(request):
+  favorites = Favorite.objects.filter(user=request.user).order_by('-created_at')
+  return render(request, 'tweet/favorites_list.html', {'favorites': favorites})
+
+
+@login_required
+def profile(request, username):
+    user = get_object_or_404(User, username=username)
+    profile = user.profile
+
+    # Check if the logged-in user is already following this profile
+    is_following = Follow.objects.filter(follower=request.user, following=user).exists()
+
+    # Fetch tweets by the user
+    user_tweets = Tweet.objects.filter(user=user).order_by('-created_at')
+
+    context = {
+        'profile': profile,
+        'user_tweets': user_tweets,
+        'tweet_count': user_tweets.count(),
+        'is_following': is_following,
+    }
+    return render(request, 'tweet/profile.html', context)
+
+
+@login_required
+def profile_media(request, username):
+    user = get_object_or_404(User, username=username)
+    tweets_with_photos = Tweet.objects.filter(user=user).exclude(photo='').order_by('-created_at')
+    
+    return render(request, 'tweet/profile_media.html', {
+        'user': user,
+        'tweets_with_photos': tweets_with_photos,
+    })
+
+
+@login_required
+def follow_toggle(request, username):
+    user_to_follow = get_object_or_404(User, username=username)
+    follow_relation, created = Follow.objects.get_or_create(follower=request.user, following=user_to_follow)
+
+    if not created:
+        follow_relation.delete()
+
+    return redirect('profile', username=user_to_follow.username)
+
+
+
+
+
 

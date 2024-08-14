@@ -29,9 +29,14 @@
           <button class="btn btn-outline-success" type="submit">Search</button>
         </form>
         {% if user.is_authenticated %}
-        <img src="{{ user.profile.profileimg.url }}" alt="Profile Image" class="rounded-circle mx-3" width="40" height="40">
         <a href="{% url 'edit_profile' %}" class="btn btn-outline-secondary ms-2">Edit Profile</a>
+        <a href="{% url 'user_posts_list' %}" class="btn btn-primary mx-2">Posts</a>
+        <a href="{% url 'likes_list' %}" class="btn btn-primary mx-2">Likes</a>
+        <a href="{% url 'favorites_list' %}" class="btn btn-primary mx-2">Favorites</a>
         <p class="navbar-text text-primary fw-bolder mx-2 my-2">{{ user.username }}</p>
+        <a href="{% url 'profile' username=request.user.username %}">
+          <img src="{{ request.user.profile.profileimg.url }}" alt="Profile" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+        </a>
         <form method="post" action="{% url "logout" %}">
           {% csrf_token %}
           <button class="btn btn-danger" type="submit">Logout</button>

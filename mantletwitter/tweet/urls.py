@@ -10,5 +10,6 @@ urlpatterns = [
   path('<int:tweet_id>/delete/', views.tweet_delete, name='tweet_delete'),
   path('search/', views.search, name='search'),  # Add the search URL pattern
   path('like_tweet/', views.like_tweet, name='like_tweet'),
+  path('save_to_favorites/<int:tweet_id>/', views.save_to_favorites, name='save_to_favorites'),
 ] 
 
