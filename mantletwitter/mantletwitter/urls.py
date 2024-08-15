@@ -25,6 +25,7 @@ from tweet import views  # Import the custom_logout view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('tweet/', include('tweet.urls')),
+    path('feed/', views.feed, name='feed'),
     path('posts/', views.user_posts_list, name='user_posts_list'),
     path('accounts/logout/', views.custom_logout, name='logout'),
     path('accounts/', include('django.contrib.auth.urls')),

@@ -137,7 +137,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/accounts/login'
 
-LOGIN_REDIRECT_URL = '/tweet/'
+LOGIN_REDIRECT_URL = '/feed/'
 LOGINOUT_REDIRECT_URL = '/tweet/'
 
 

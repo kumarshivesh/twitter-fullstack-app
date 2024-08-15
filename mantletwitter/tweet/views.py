@@ -16,31 +16,33 @@ def tweet_list(reqest):
   return render(reqest, 'tweet_list.html', {'tweets': tweets})
 
 
+@login_required
 def signup(request):
-  if request.method == 'POST':
-    form = UserRegistrationForm(request.POST, request.FILES)
-    if form.is_valid():
-      user = form.save(commit=False)
-      user.first_name = form.cleaned_data.get('first_name')
-      user.last_name = form.cleaned_data.get('last_name')
-      user.save()
-      
-      profileimg = form.cleaned_data.get('profileimg') or 'profile_images/blank-profile-picture.png'
-      
-      # Create a Profile object for the new user
-      Profile.objects.create(user=user, profileimg=profileimg)
-      
-      # Log the user in and redirect to 'tweet_list' page 
-      user_login = auth.authenticate(username=user.username, password=form.cleaned_data.get('password1'))
-      auth.login(request, user_login)
-      
-      return redirect('tweet_list')
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.first_name = form.cleaned_data.get('first_name')
+            user.last_name = form.cleaned_data.get('last_name')
+            user.save()
+
+            profileimg = form.cleaned_data.get('profileimg') or 'profile_images/blank-profile-picture.png'
+
+            # Create a Profile object for the new user
+            Profile.objects.create(user=user, profileimg=profileimg)
+
+            # Log the user in and redirect to 'feed' page 
+            user_login = auth.authenticate(username=user.username, password=form.cleaned_data.get('password1'))
+            auth.login(request, user_login)
+
+            return redirect('feed')  # Redirect to the feed page
+        else:
+            messages.error(request, form.errors)
+            return redirect('signup')
     else:
-      messages.error(request, form.errors)
-      return redirect('signup')
-  else:
-    form = UserRegistrationForm()
-  return render(request, 'registration/signup.html', {'form': form})
+        form = UserRegistrationForm()
+    return render(request, 'registration/signup.html', {'form': form})
+
 
 def custom_logout(request):
   logout(request)
@@ -196,6 +198,27 @@ def follow_toggle(request, username):
         follow_relation.delete()
 
     return redirect('profile', username=user_to_follow.username)
+
+
+@login_required
+def feed(request):
+    # Get the logged-in user
+    user = request.user
+    
+    # Get the users that the logged-in user follows
+    following_users = Follow.objects.filter(follower=user).values_list('following', flat=True)
+    
+    # Get tweets from the logged-in user and those they follow
+    tweets = Tweet.objects.filter(user__in=following_users).order_by('-created_at')
+    
+    # Also include the logged-in user's tweets
+    user_tweets = Tweet.objects.filter(user=user)
+    
+    # Combine the two querysets
+    all_tweets = tweets | user_tweets
+    
+    return render(request, 'tweet/feed.html', {'tweets': all_tweets})
+
 
 
 
